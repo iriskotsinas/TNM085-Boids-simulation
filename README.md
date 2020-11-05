@@ -13,5 +13,5 @@ Implemented in JavaScript with three.js.
 Clone three.js repository and put in root of project to be able to run:
 
 ```zsh
-git clone https://github.com/mrdoob/three.js.git
+git clone --depth=1 https://github.com/mrdoob/three.js.git
 ```
