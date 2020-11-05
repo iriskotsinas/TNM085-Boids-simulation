@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Three.js textured sphere</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<!-- <script src="three.min.js"></script> -->
+		<script src="three.js/build/three.js"></script>
+		<script>
+			// Lots of global variables. (This is JavaScript. No use complaining.)
+			var container;
+			var camera, scene, renderer;
+
+			// Time stamp for animation timing
+			var previousTime;
+			
+			// Variables for crude mouse interaction
+			var mouseX = 0, mouseY = 0;
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;			
+			
+			// Group nodes and Mesh nodes
+			var sceneRoot = new THREE.Group();
+			var earthSpin = new THREE.Group();
+			var earthMesh;
+
+			// Some things need to change when the window is resized
+			function onWindowResize() {
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+
+			
+			function onDocumentMouseMove( event ) {
+			    // mouseX, mouseY are in the range [-1, 1]
+				mouseX = ( event.clientX - windowHalfX ) / windowHalfX;
+				mouseY = ( event.clientY - windowHalfY ) / windowHalfY;
+			}
+			
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				// Set up the camera
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 0.1, 100 );
+				camera.position.z = 5;
+
+				scene = new THREE.Scene();
+								
+				// Earth mesh
+				var geometryEarth = new THREE.SphereGeometry( 1, 20, 20 );
+				var materialEarth = new THREE.MeshBasicMaterial();					
+				var loaderEarth = new THREE.TextureLoader();
+				loaderEarth.load( 'earth.png', function ( texture ) 
+				{
+					materialEarth.map = texture;
+					materialEarth.needsUpdate = true;
+					materialEarth.overdraw = 0.5;					
+				} );
+				earthMesh = new THREE.Mesh( geometryEarth, materialEarth );
+
+				// Top-level node
+				scene.add( sceneRoot );
+
+				// Sun branch
+				sceneRoot.add( earthSpin );
+				earthSpin.add( earthMesh );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0x000000 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				window.addEventListener( 'resize', onWindowResize, false );
+				
+				// Time stamp for animation timing, done properly
+				previousTime = Date.now(); // Start time for the animation
+			}
+
+			
+			function render() {
+
+				var currentTime;
+
+				// Set up the camera
+				camera.position.x = 0;
+				camera.position.y = -mouseY*10;
+				camera.lookAt( scene.position );
+
+				// Perform animations with absolute speed (elapsed time, not frame numbers)
+				currentTime = Date.now();
+				deltaTime = (currentTime - previousTime)*0.001; // getTime() returns milliseconds
+				previousTime = currentTime;
+				
+				earthSpin.rotation.y += 0.8 * deltaTime; // Rotate 0.8 radians per second
+
+				// Render the scene
+				renderer.render( scene, camera );
+			}
+
+
+			function animate() {
+				requestAnimationFrame( animate ); // Request to be called again for next frame
+				render();
+			}
+
+			
+			init();    // Set up the scene
+			animate(); // Enter an infinite loop
+			
+		</script>
+	</body>
+</html>
